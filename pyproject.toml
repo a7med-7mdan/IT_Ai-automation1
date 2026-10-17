@@ -1,0 +1,15 @@
+[project]
+name = "ai-it-incident-agent"
+version = "0.1.0"
+description = "AI IT Incident Response Agent with autonomous agents, guardrails, and custom Web UI"
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+    "openai-agents>=0.24.0",
+    "fastapi>=0.115.0",
+    "uvicorn>=0.30.0",
+    "pydantic>=2.10.0",
+]
+
+[tool.uv]
+link-mode = "copy"

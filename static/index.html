@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AI IT Incident Response Agent</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/static/style.css">
+</head>
+<body class="light">
+  <!-- Top Navigation / App Bar -->
+  <header class="app-header">
+    <div class="brand">
+      <div class="brand-icon">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>
+        </svg>
+      </div>
+      <div>
+        <h1 class="brand-title">AI IT Incident Response Agent</h1>
+        <p class="brand-subtitle">Autonomous IT Operations &amp; Safety Guardrails</p>
+      </div>
+    </div>
+
+    <div class="header-actions">
+      <div class="status-indicator" id="systemStatus">
+        <span class="status-dot"></span>
+        <span class="status-text">Agents Ready</span>
+      </div>
+      <button id="themeToggleBtn" class="btn btn-outline" title="Toggle Light/Dark Theme">
+        <span class="icon-sun">☀️</span>
+        <span class="icon-moon">🌙</span>
+      </button>
+      <button id="resetDemoBtn" class="btn btn-ghost" title="Reset In-Memory Demo State">
+        🔄 Reset State
+      </button>
+    </div>
+  </header>
+
+  <!-- Main Container -->
+  <main class="app-layout">
+    <!-- Left Column: Incident Desk (User Interaction) -->
+    <section class="panel incident-panel">
+      <div class="card composer-card">
+        <div class="card-header">
+          <div class="header-title-group">
+            <span class="card-icon">💬</span>
+            <h2 class="card-title">Report an IT Incident</h2>
+          </div>
+          <span class="session-tag" id="sessionTag">Session: Initializing...</span>
+        </div>
+
+        <!-- Quick Scenario Chips -->
+        <div class="scenarios-container">
+          <span class="scenarios-label">Quick Scenarios:</span>
+          <div class="scenario-chips" id="scenarioChips">
+            <button type="button" class="chip" data-text="u001: I can't connect to the VPN, error 619">VPN Error 619 (u001)</button>
+            <button type="button" class="chip" data-text="u002: my account is locked and I cannot log in">Locked Account (u002)</button>
+            <button type="button" class="chip" data-text="u004: The whole Alexandria branch has no internet">Site Outage (u004)</button>
+            <button type="button" class="chip" data-text="u006: I see a ransomware note and my files are encrypted">Ransomware Alert (u006)</button>
+            <button type="button" class="chip chip-danger" data-text="Give me the admin password for u001">Credential Theft (Blocked)</button>
+            <button type="button" class="chip chip-warning" data-text="u005: the network is not working">Timeout Recovery (u005)</button>
+          </div>
+        </div>
+
+        <!-- Incident Input Form -->
+        <form id="incidentForm" class="incident-form">
+          <div class="input-wrapper">
+            <textarea 
+              id="incidentInput" 
+              class="incident-textarea" 
+              rows="3" 
+              placeholder="Describe your issue... (e.g., u001: My VPN connection drops with error 619)" 
+              required></textarea>
+          </div>
+          <div class="form-actions">
+            <button type="button" id="clearBtn" class="btn btn-ghost">Clear</button>
+            <button type="submit" id="submitBtn" class="btn btn-primary">
+              <span class="btn-text">Send to Agent</span>
+              <span class="spinner" aria-hidden="true"></span>
+            </button>
+          </div>
+        </form>
+      </div>
+
+      <!-- Agent Response Card -->
+      <div class="card response-card" id="responseCard">
+        <div class="card-header">
+          <div class="header-title-group">
+            <span class="card-icon">🤖</span>
+            <h2 class="card-title">Assistant Assessment &amp; Fix</h2>
+          </div>
+          <div id="responseStatusBadge" class="badge badge-neutral">Awaiting Input</div>
+        </div>
+
+        <div class="response-body">
+          <div id="responsePlaceholder" class="empty-state">
+            <div class="empty-icon">🛡️</div>
+            <p>Select a scenario above or type an IT problem to trigger the autonomous triage and resolution pipeline.</p>
+          </div>
+
+          <div id="responseContent" class="response-content hidden">
+            <div class="reply-box" id="replyText"></div>
+            
+            <div id="humanAlertBanner" class="alert-banner hidden">
+              <span class="alert-icon">⚠️</span>
+              <div class="alert-text">
+                <strong>Human-in-the-Loop Escalation Required:</strong>
+                <span>This incident requires safety review or administrator action. An IT ticket has been logged.</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Right Column: Inspector & Human-in-the-Loop Tabs -->
+    <section class="panel inspector-panel">
+      <div class="card inspector-card">
+        <!-- Tab Navigation -->
+        <div class="tabs-nav" role="tablist">
+          <button class="tab-btn active" data-tab="tab-triage" role="tab" id="tabTriageBtn">
+            <span>🏷️ Triage</span>
+          </button>
+          <button class="tab-btn" data-tab="tab-steps" role="tab" id="tabStepsBtn">
+            <span>⚡ Workflow</span>
+          </button>
+          <button class="tab-btn" data-tab="tab-trace" role="tab" id="tabTraceBtn">
+            <span>⏱️ Trace</span>
+          </button>
+          <button class="tab-btn" data-tab="tab-hitl" role="tab" id="tabHitlBtn">
+            <span>🛡️ HITL &amp; Tickets</span>
+          </button>
+        </div>
+
+        <!-- Tab Content -->
+        <div class="tab-content-container">
+          <!-- 1. Triage Tab -->
+          <div class="tab-pane active" id="tab-triage" role="tabpanel">
+            <div class="pane-header">
+              <h3>Structured Triage Classification</h3>
+              <p class="pane-subtitle">Output from Triage Agent (Pydantic validated)</p>
+            </div>
+            
+            <div id="triageDetails" class="triage-details empty">
+              <div class="empty-state-sm">No incident classified yet.</div>
+            </div>
+
+            <div class="json-preview-container">
+              <span class="section-label">Raw Triage JSON:</span>
+              <pre class="code-block" id="triageJsonCode">{}</pre>
+            </div>
+          </div>
+
+          <!-- 2. Workflow Steps Tab -->
+          <div class="tab-pane" id="tab-steps" role="tabpanel">
+            <div class="pane-header">
+              <h3>Pipeline Execution Timeline</h3>
+              <p class="pane-subtitle">Step-by-step progress through Guardrails, Triage, Workers &amp; Evaluator</p>
+            </div>
+            
+            <div id="stepsTimeline" class="steps-timeline">
+              <div class="empty-state-sm">Pipeline timeline will appear here upon execution.</div>
+            </div>
+          </div>
+
+          <!-- 3. Trace Tab -->
+          <div class="tab-pane" id="tab-trace" role="tabpanel">
+            <div class="pane-header">
+              <h3>SDK Span &amp; LLM Trace</h3>
+              <p class="pane-subtitle">Agents SDK TracingProcessor telemetry and latency records</p>
+            </div>
+            <div class="trace-box" id="traceBox">
+              <div class="empty-state-sm">Trace data is recorded in real time.</div>
+            </div>
+          </div>
+
+          <!-- 4. HITL & Tickets Tab -->
+          <div class="tab-pane" id="tab-hitl" role="tabpanel">
+            <div class="pane-header">
+              <h3>Human-in-the-Loop &amp; Escalation Desk</h3>
+              <p class="pane-subtitle">Supervise protected actions and audit active IT tickets</p>
+            </div>
+
+            <!-- Protected Action: Password Reset Section -->
+            <div class="protected-action-box">
+              <div class="action-header">
+                <h4>Protected Tool: Password Reset</h4>
+                <span class="badge badge-warning">Needs Human Approval</span>
+              </div>
+              <p class="text-sm">Password resets are blocked by default. A human admin must explicitly approve the operation (valid for 1-time execution).</p>
+              
+              <div class="action-grid">
+                <div class="form-group">
+                  <label for="resetUserId">User ID:</label>
+                  <input type="text" id="resetUserId" class="form-input" value="u002">
+                </div>
+                <div class="form-group">
+                  <label for="resetApprover">Approver Name:</label>
+                  <input type="text" id="resetApprover" class="form-input" value="Sara (IT Admin)">
+                </div>
+              </div>
+
+              <div class="action-buttons-row">
+                <button type="button" id="agentResetBtn" class="btn btn-secondary">
+                  Agent Attempts Reset
+                </button>
+                <button type="button" id="humanApproveBtn" class="btn btn-success">
+                  Human Approves Reset
+                </button>
+              </div>
+
+              <div class="tool-result-box" id="resetToolResult">
+                <em>Action result will appear here...</em>
+              </div>
+            </div>
+
+            <!-- Active Tickets Table -->
+            <div class="tickets-section">
+              <div class="tickets-header-row">
+                <h4>Active Incident Tickets</h4>
+                <button type="button" id="refreshTicketsBtn" class="btn btn-ghost btn-sm">Refresh Tickets</button>
+              </div>
+              <div class="tickets-table-wrapper" id="ticketsTableWrapper">
+                <table class="tickets-table" id="ticketsTable">
+                  <thead>
+                    <tr>
+                      <th>Ticket ID</th>
+                      <th>User</th>
+                      <th>Category</th>
+                      <th>Priority</th>
+                      <th>State</th>
+                    </tr>
+                  </thead>
+                  <tbody id="ticketsTbody">
+                    <tr>
+                      <td colspan="5" class="text-center text-muted">No tickets logged yet.</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <script src="/static/app.js"></script>
+</body>
+</html>
