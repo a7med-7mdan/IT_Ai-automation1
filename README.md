@@ -6,7 +6,6 @@ Agentic AI final project, Project 1. Built with the OpenAI Agents SDK running on
 
 User -> Web UI (HTML/CSS/JS + FastAPI) -> input guardrail -> triage -> router -> orchestrator -> workers (in parallel) -> troubleshooter <-> evaluator loop -> output guardrail -> reply or human review
 
-
 ## Who decides what
 
 | Decision | Style | Where |
@@ -49,22 +48,71 @@ Security and critical incidents are never closed automatically. Escalations auto
 
 SQLiteSession keeps the conversation per session (sessions.db), so a follow-up without a user ID reuses the earlier one. trace() wraps each incident; the Collector in workflow.py shows agents, tools and generations in the UI.
 
+## Project structure
+
+    app.py                FastAPI server and web UI entry point
+    it_incident/          agents, tools, guardrails, workflow, models, data
+    static/               web UI (index.html, app.js, style.css)
+    tests/                offline tests, scenario tests and demos
+    requirements.txt      Python dependencies
+    sessions.db           created at runtime for conversation memory
+
+## Requirements
+
+- Windows with PowerShell, Python 3.10 or newer (the `py` launcher)
+- Git
+- Ollama installed and running, with the qwen2.5:7b model (about 4.7 GB)
+
 ## Run
 
+    git clone https://github.com/a7med-7mdan/IT_Ai-automation.git
+    cd IT_Ai-automation
+    py -m venv .venv
+    .venv\Scripts\Activate.ps1
     pip install -r requirements.txt
     ollama pull qwen2.5:7b
     $env:OLLAMA_MODEL = "qwen2.5:7b"
     py app.py
 
+Open http://127.0.0.1:8000 in the browser and describe an IT incident, for example "I'm user U1001 and my VPN keeps disconnecting". The first reply can take a minute on a CPU-only machine.
+
+If activating the virtual environment is blocked, run `Set-ExecutionPolicy -Scope CurrentUser RemoteSigned` once.
+
+Optional environment variables:
+
+    $env:OLLAMA_MODEL = "llama3.1:8b"
+    $env:OLLAMA_URL = "http://localhost:11434/v1"
+    $env:PORT = "8001"
+
+`$env:` values last only for the current PowerShell window, so set them again in each new one.
+
 ## Tests
 
-    py test_resolution.py --offline
-    py test_scenarios.py --fast
-    py test_scenarios.py
-    py test_my_part.py
-    py test_triage.py --offline
+Run all commands from the project root with the virtual environment active.
+
+No LLM needed:
+
+    py tests\test_triage.py --offline
+    py tests\test_resolution.py --offline
+    py tests\test_investigation.py --offline
+    py tests\test_my_part.py
+    py tests\demo_my_part.py
+    py tests\test_scenarios.py --fast
+
+Ollama must be running:
+
+    py tests\test_llm_smoke.py
+    py tests\test_scenarios.py
+
+`tests\test_web_api.py` talks to the web server, so start `py app.py` in another window first.
 
 test_scenarios.py covers the 12 required demo scenarios. demo_my_part.py shows scenarios 7 to 10 without an LLM.
+
+## Troubleshooting
+
+- `ModuleNotFoundError: No module named 'it_incident'`: run from the project root and make sure the `it_incident` folder exists next to `app.py`.
+- Connection errors to the model: start Ollama and check that `ollama list` shows qwen2.5:7b.
+- Port already in use: set `$env:PORT` to another number.
 
 ## Bonus
 
@@ -72,5 +120,4 @@ Evaluation suite measuring tool choice accuracy, escalation handling, evaluator 
 
 ## Team
 
-Person A: data, tools, guardrails, tool failure handling. Person B: agents, workflow, escalation, tracing and sessions. Together: integration, UI, README.
-
+Eyad Mostafa: data, tools, guardrails, tool failure handling. Ahmed Hemdan: agents, workflow, escalation, tracing and sessions. Together: integration, UI, README.
